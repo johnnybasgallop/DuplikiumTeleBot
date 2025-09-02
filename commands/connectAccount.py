@@ -1,10 +1,13 @@
 import asyncio
 
+from routes.confirmAccount import confirm_account
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
                           ConversationHandler, MessageHandler, filters)
 
 ACCOUNT_NUMBER_STATE, ACCOUNT_PASSWORD_STATE, CONFIRMATION_STATE = range(3)
+
+
 
 async def connectAccount(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("Please provide your account number or press /exit if this was a mistake:")
@@ -40,12 +43,18 @@ async def handle_password(update: Update, context: ContextTypes.DEFAULT_TYPE):
     return CONFIRMATION_STATE
 
 async def handle_yes(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "Great! Account connection confirmed.",
-        reply_markup=ReplyKeyboardRemove()
-    )
-    context.user_data.clear()
-    return ConversationHandler.END
+    login = context.user_data['Account_Number']
+    password = context.user_data['Account_Password']
+    confirmation_id = await confirm_account(login=login, password=password)
+    if confirmation_id:
+        await update.message.reply_text(
+            "Great! Account connection confirmed.",
+            reply_markup=ReplyKeyboardRemove()
+        )
+        context.user_data.clear()
+        return ConversationHandler.END
+    else:
+        await update.message.reply_text("Sorry we couldnt find those details, try again via /connectAccount")
 
 async def handle_no(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
