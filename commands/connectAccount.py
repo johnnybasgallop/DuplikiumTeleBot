@@ -1,5 +1,6 @@
 import asyncio
 
+from config import db
 from routes.confirmAccount import confirm_account
 from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
@@ -52,9 +53,21 @@ async def handle_yes(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=ReplyKeyboardRemove()
         )
         context.user_data.clear()
-        return ConversationHandler.END
+
+        result = db.table("algo-accounts").insert({
+            "telegramId": update.effective_user.id,
+            "accounts": [{'login': login, 'accountId': confirmation_id }],
+        }).execute()
+
+        if result.data:
+            await update.message.reply_text("Account saved!")
+        else:
+            await update.message.reply_text("Failed to save account.")
+            return ConversationHandler.END
+
     else:
         await update.message.reply_text("Sorry we couldnt find those details, try again via /connectAccount")
+        return ConversationHandler.END
 
 async def handle_no(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
