@@ -4,6 +4,8 @@ import asyncio
 import os
 
 from commands.connectAccount import connectAccount_conversation
+from commands.connectAdditionalAccount import \
+    connectAdditionalAccount_conversation
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
@@ -42,11 +44,10 @@ test_conversation = ConversationHandler(
 
 async def async_main():
     await bot_app.initialize()
-    bot_app.add_handler(test_conversation)
-    # bot_app.add_handler(CommandHandler('exit', exit))
+    bot_app.add_handler(connectAdditionalAccount_conversation)
     bot_app.add_handler(connectAccount_conversation)
     bot_app.add_handler(CommandHandler("start", start))
-    bot_app.add_handler(CommandHandler("test", test))
+
     await bot_app.start()
     await bot_app.updater.start_polling()
     print("🤖 Telegram Bot is running...")
