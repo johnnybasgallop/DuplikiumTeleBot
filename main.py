@@ -3,6 +3,7 @@ import asyncio
 # main.py (bare bones Telegram bot)
 import os
 
+from commands.checkAccountStatus import check_account_status_conversation
 from commands.connectAccount import connectAccount_conversation
 from commands.removeAccount import remove_account_conversation
 from dotenv import load_dotenv
@@ -45,6 +46,7 @@ async def async_main():
     await bot_app.initialize()
     bot_app.add_handler(connectAccount_conversation)
     bot_app.add_handler(remove_account_conversation)
+    bot_app.add_handler(check_account_status_conversation)
     bot_app.add_handler(CommandHandler("start", start))
 
     await bot_app.start()
