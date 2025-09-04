@@ -3,9 +3,11 @@ import asyncio
 # main.py (bare bones Telegram bot)
 import os
 
+from commands.adjustMultiplier import adjust_multiplier_conversation
 from commands.checkAccountStatus import check_account_status_conversation
 from commands.connectAccount import connectAccount_conversation
 from commands.removeAccount import remove_account_conversation
+from commands.start import start_command
 from commands.turnAllAccounts import (turn_off_all_accounts_conversation,
                                       turn_on_all_accounts_conversation)
 from commands.turnOffAccount import turn_off_account_conversation
@@ -23,6 +25,7 @@ async def setup_bot_commands(application):
     commands = [
         BotCommand("connectaccount", "Connect your trading account"),
         BotCommand("checkaccountstatus", "View account balance and status"),
+        BotCommand("adjustmultiplier", "View and Adjust the multiplier on your account"),
         BotCommand("removeaccount", "Disconnect an account"),
         BotCommand("turnonaccount", "Enable a specific account"),
         BotCommand("turnoffaccount", "Disable a specific account"),
@@ -40,40 +43,20 @@ BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 bot_app = Application.builder().token(BOT_TOKEN).build()
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Hello! This is a bare bones Telegram bot.")
-
-async def test_convo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Tell me a number")
-    return TEST_WAITING
-
-async def handle_test(update: Update, context:ContextTypes.DEFAULT_TYPE):
-    number = update.message.text
-    await update.message.reply_text(f"You said {number}!")
-    return ConversationHandler.END
-
-
-async def test(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Test command received!")
-
-test_conversation = ConversationHandler(
-    entry_points=[CommandHandler("test_convo", test_convo)],
-    states={TEST_WAITING: [MessageHandler(filters.TEXT, handle_test)]},
-    fallbacks=[]
-)
 
 async def async_main():
     await bot_app.initialize()
     bot_app.add_handler(connectAccount_conversation)
     bot_app.add_handler(remove_account_conversation)
     bot_app.add_handler(check_account_status_conversation)
+    bot_app.add_handler(adjust_multiplier_conversation)
     bot_app.add_handler(turn_off_account_conversation)
     bot_app.add_handler(turn_on_account_conversation)
 
     bot_app.add_handler(turn_on_all_accounts_conversation)
     bot_app.add_handler(turn_off_all_accounts_conversation)
 
-    bot_app.add_handler(CommandHandler("start", start))
+    bot_app.add_handler(CommandHandler("start", start_command))
 
     await setup_bot_commands(bot_app)
 
