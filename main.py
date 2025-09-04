@@ -6,6 +6,10 @@ import os
 from commands.checkAccountStatus import check_account_status_conversation
 from commands.connectAccount import connectAccount_conversation
 from commands.removeAccount import remove_account_conversation
+from commands.turnAllAccounts import (turn_off_all_accounts_conversation,
+                                      turn_on_all_accounts_conversation)
+from commands.turnOffAccount import turn_off_account_conversation
+from commands.turnOnAccount import turn_on_account_conversation
 from dotenv import load_dotenv
 from telegram import Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
@@ -47,6 +51,12 @@ async def async_main():
     bot_app.add_handler(connectAccount_conversation)
     bot_app.add_handler(remove_account_conversation)
     bot_app.add_handler(check_account_status_conversation)
+    bot_app.add_handler(turn_off_account_conversation)
+    bot_app.add_handler(turn_on_account_conversation)
+
+    bot_app.add_handler(turn_on_all_accounts_conversation)
+    bot_app.add_handler(turn_off_all_accounts_conversation)
+
     bot_app.add_handler(CommandHandler("start", start))
 
     await bot_app.start()
