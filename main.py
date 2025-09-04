@@ -11,11 +11,27 @@ from commands.turnAllAccounts import (turn_off_all_accounts_conversation,
 from commands.turnOffAccount import turn_off_account_conversation
 from commands.turnOnAccount import turn_on_account_conversation
 from dotenv import load_dotenv
-from telegram import Update
+from telegram import BotCommand, Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
                           ConversationHandler, MessageHandler, filters)
 
 load_dotenv()
+
+
+async def setup_bot_commands(application):
+    """Set up bot commands for autocomplete"""
+    commands = [
+        BotCommand("connectaccount", "Connect your trading account"),
+        BotCommand("checkaccountstatus", "View account balance and status"),
+        BotCommand("removeaccount", "Disconnect an account"),
+        BotCommand("turnonaccount", "Enable a specific account"),
+        BotCommand("turnoffaccount", "Disable a specific account"),
+        BotCommand("turnonallaccounts", "Enable all accounts"),
+        BotCommand("turnofallaccounts", "Disable all accounts"),
+    ]
+
+    await application.bot.set_my_commands(commands)
+
 
 TEST_WAITING = 1
 
@@ -58,6 +74,8 @@ async def async_main():
     bot_app.add_handler(turn_off_all_accounts_conversation)
 
     bot_app.add_handler(CommandHandler("start", start))
+
+    await setup_bot_commands(bot_app)
 
     await bot_app.start()
     await bot_app.updater.start_polling()
