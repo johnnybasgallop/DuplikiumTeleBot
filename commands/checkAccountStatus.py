@@ -33,6 +33,9 @@ async def start_check_account_status(update: Update, context: ContextTypes.DEFAU
             callback_data=f"check_{i}"
         )])
 
+    # Add check all option
+    keyboard.append([InlineKeyboardButton("📊 Check All Accounts", callback_data="check_all")])
+
     # Add cancel option
     keyboard.append([InlineKeyboardButton("❌ Cancel", callback_data="cancel")])
 
@@ -53,7 +56,30 @@ async def handle_account_status_check(update: Update, context: ContextTypes.DEFA
         await query.edit_message_text("✅ Account status check cancelled.")
         return ConversationHandler.END
 
-    # Get account index from callback data
+    if query.data == "check_all":
+        # Handle checking all accounts
+        user_id = str(update.effective_user.id)
+
+        # Get fresh account data
+        row = db.table('algo-accounts').select("*").eq('telegramId', user_id).execute()
+        accounts = row.data[0].get("accounts", [])
+
+        await query.edit_message_text(f"Checking status for all {len(accounts)} accounts...")
+
+        # Get status for each account
+        all_statuses = []
+        for account in accounts:
+            account_id = account.get('accountId', '')
+            account_info = await get_account_info(account_id)
+            all_statuses.append(account_info)
+
+        # Combine all statuses with spacing
+        combined_status = "\n\n\n\n".join(all_statuses)
+
+        await query.edit_message_text(combined_status, parse_mode="HTML")
+        return ConversationHandler.END
+
+    # Handle individual account check
     account_index = int(query.data.split("_")[1])
     user_id = str(update.effective_user.id)
 
@@ -93,6 +119,3 @@ check_account_status_conversation = ConversationHandler(
     },
     fallbacks=[CommandHandler("cancel", cancel_check)]
 )
-
-# Add to your main.py:
-# app.add_handler(check_account_status_conversation)
