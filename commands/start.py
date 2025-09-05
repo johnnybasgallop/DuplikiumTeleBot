@@ -36,10 +36,10 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         f" /turnofallaccounts  \n"
         f"❌ Disable trading activity for all connected accounts at once. Useful for quickly stopping all trading activity during high-risk market conditions or for maintenance.\n\n"
 
-        f"📈 <b>RISK MANAGEMENT</b>\n\n"
+        # f"📈 <b>RISK MANAGEMENT</b>\n\n"
 
-        f" /adjustmultiplier  \n"
-        f"⚖️ View and modify the lot size multiplier for your accounts. The multiplier determines how trade sizes are calculated relative to the master account. For example, a multiplier of 2.0 means trades will be twice the size of the master account.\n\n"
+        # f" /adjustmultiplier  \n"
+        # f"⚖️ View and modify the lot size multiplier for your accounts. The multiplier determines how trade sizes are calculated relative to the master account. For example, a multiplier of 2.0 means trades will be twice the size of the master account.\n\n"
 
         f"🚀 <b>GETTING STARTED</b>\n\n"
 

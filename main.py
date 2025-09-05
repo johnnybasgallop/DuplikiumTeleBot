@@ -26,7 +26,7 @@ async def setup_bot_commands(application):
         BotCommand("start", "See a list of options and commands"),
         BotCommand("connectaccount", "Connect your trading account"),
         BotCommand("checkaccountstatus", "View account balance and status"),
-        BotCommand("adjustmultiplier", "View and Adjust the multiplier on your account"),
+        # BotCommand("adjustmultiplier", "View and Adjust the multiplier on your account"),
         BotCommand("removeaccount", "Disconnect an account"),
         BotCommand("turnonaccount", "Enable a specific account"),
         BotCommand("turnoffaccount", "Disable a specific account"),
@@ -50,7 +50,7 @@ async def async_main():
     bot_app.add_handler(connectAccount_conversation)
     bot_app.add_handler(remove_account_conversation)
     bot_app.add_handler(check_account_status_conversation)
-    bot_app.add_handler(adjust_multiplier_conversation)
+    # bot_app.add_handler(adjust_multiplier_conversation)
     bot_app.add_handler(turn_off_account_conversation)
     bot_app.add_handler(turn_on_account_conversation)
 
