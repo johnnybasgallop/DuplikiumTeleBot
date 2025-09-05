@@ -23,6 +23,7 @@ load_dotenv()
 async def setup_bot_commands(application):
     """Set up bot commands for autocomplete"""
     commands = [
+        BotCommand("start", "See a list of options and commands"),
         BotCommand("connectaccount", "Connect your trading account"),
         BotCommand("checkaccountstatus", "View account balance and status"),
         BotCommand("adjustmultiplier", "View and Adjust the multiplier on your account"),
