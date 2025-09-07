@@ -8,6 +8,7 @@ from telegram.ext import (CallbackQueryHandler, CommandHandler, ContextTypes,
 SELECT_ACCOUNT_TO_DISABLE = 1
 
 async def start_turn_off_account(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
     """Entry point - show accounts to disable"""
     user_id = str(update.effective_user.id)
 

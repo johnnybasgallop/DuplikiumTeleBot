@@ -8,6 +8,7 @@ from telegram.ext import (CallbackQueryHandler, CommandHandler, ContextTypes,
 SELECT_ACCOUNT_TO_CHECK = 1
 
 async def start_check_account_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
     """Entry point - show accounts to check status"""
     user_id = str(update.effective_user.id)
 

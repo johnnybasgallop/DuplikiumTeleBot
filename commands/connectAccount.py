@@ -10,6 +10,7 @@ from telegram.ext import (Application, CallbackQueryHandler, CommandHandler,
 ACCOUNT_NUMBER_STATE, ACCOUNT_PASSWORD_STATE, CONFIRMATION_STATE = range(3)
 
 async def connectAccount(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
     # Add Cancel button to first message
     keyboard = [[InlineKeyboardButton("Cancel", callback_data="cancel")]]
     reply_markup = InlineKeyboardMarkup(keyboard)
@@ -79,7 +80,7 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
         confirmation_id = await confirm_account(login=login, password=password)
 
         if confirmation_id:
-            new_account = {'login': login, 'accountId': confirmation_id}
+            new_account = {'login': login, 'accountId': confirmation_id, 'auto_coumpounding': False}
 
             # Check if user already has an account record
             row = db.table('algo-accounts').select("*").eq('telegramId', user_id).execute()

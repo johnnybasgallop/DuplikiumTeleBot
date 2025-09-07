@@ -8,6 +8,7 @@ from telegram.ext import (CallbackQueryHandler, CommandHandler, ContextTypes,
 SELECT_ACCOUNT_TO_ENABLE = 1
 
 async def start_turn_on_account(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
     """Entry point - show accounts to enable"""
     user_id = str(update.effective_user.id)
 

@@ -11,7 +11,11 @@ from commands.start import start_command
 from commands.turnAllAccounts import (turn_off_all_accounts_conversation,
                                       turn_on_all_accounts_conversation)
 from commands.turnOffAccount import turn_off_account_conversation
+from commands.turnOffAutoCompounding import \
+    turn_off_auto_compounding_conversation
 from commands.turnOnAccount import turn_on_account_conversation
+from commands.turnOnAutoCompounding import \
+    turn_on_auto_compounding_conversation
 from dotenv import load_dotenv
 from telegram import BotCommand, Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
@@ -32,6 +36,8 @@ async def setup_bot_commands(application):
         BotCommand("turnoffaccount", "Disable a specific account"),
         BotCommand("turnonallaccounts", "Enable all accounts"),
         BotCommand("turnofallaccounts", "Disable all accounts"),
+        BotCommand("turnonautocompounding", "turn on auto compounding for your algo account tiers"),
+        BotCommand("turnoffautocompounding", "turn off auto compounding for your algo account tiers"),
     ]
 
     await application.bot.set_my_commands(commands)
@@ -56,6 +62,9 @@ async def async_main():
 
     bot_app.add_handler(turn_on_all_accounts_conversation)
     bot_app.add_handler(turn_off_all_accounts_conversation)
+    bot_app.add_handler(turn_off_auto_compounding_conversation)
+
+    bot_app.add_handler(turn_on_auto_compounding_conversation)
 
     bot_app.add_handler(CommandHandler("start", start_command))
 

@@ -7,6 +7,7 @@ from telegram.ext import (CallbackQueryHandler, CommandHandler, ContextTypes,
 SELECT_ACCOUNT_TO_DELETE = 1
 
 async def start_remove_account(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
     """Entry point - show accounts to delete"""
     user_id = str(update.effective_user.id)
 

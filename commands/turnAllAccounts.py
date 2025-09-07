@@ -11,6 +11,7 @@ CONFIRM_ENABLE_ALL = 1
 CONFIRM_DISABLE_ALL = 2
 
 async def start_turn_on_all_accounts(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
     """Entry point - confirm turning on all accounts"""
     user_id = str(update.effective_user.id)
 

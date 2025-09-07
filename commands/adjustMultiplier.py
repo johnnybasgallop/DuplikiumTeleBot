@@ -10,6 +10,7 @@ from telegram.ext import (CallbackQueryHandler, CommandHandler, ContextTypes,
 SELECT_ACCOUNT_TO_ADJUST, ENTER_NEW_MULTIPLIER = range(2)
 
 async def start_adjust_multiplier(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.user_data.clear()
     """Entry point - show accounts to adjust multiplier"""
     user_id = str(update.effective_user.id)
 
