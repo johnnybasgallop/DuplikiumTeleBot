@@ -80,7 +80,7 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
         confirmation_id = await confirm_account(login=login, password=password)
 
         if confirmation_id:
-            new_account = {'login': login, 'accountId': confirmation_id, 'auto_coumpounding': False}
+            new_account = {'login': login, 'accountId': confirmation_id, 'auto_compounding': False}
 
             # Check if user already has an account record
             row = db.table('algo-accounts').select("*").eq('telegramId', user_id).execute()

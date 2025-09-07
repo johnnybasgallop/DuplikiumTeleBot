@@ -28,7 +28,7 @@ async def start_turn_off_auto_compounding(update: Update, context: ContextTypes.
     keyboard = []
     for i, account in enumerate(accounts):
         login = account.get('login', f'Account {i+1}')
-        auto_compounding_status = account.get('auto_coumpounding', False)
+        auto_compounding_status = account.get('auto_compounding', False)
         status_text = "ON" if auto_compounding_status else "OFF"
 
         keyboard.append([InlineKeyboardButton(
@@ -73,7 +73,7 @@ async def handle_auto_compounding_disable_selection(update: Update, context: Con
         updated_accounts = []
         for account in accounts:
             updated_account = account.copy()
-            updated_account['auto_coumpounding'] = False
+            updated_account['auto_compounding'] = False
             updated_accounts.append(updated_account)
 
         # Update database
@@ -99,7 +99,7 @@ async def handle_auto_compounding_disable_selection(update: Update, context: Con
             return ConversationHandler.END
 
         # Disable auto compounding for selected account
-        accounts[account_index]['auto_coumpounding'] = False
+        accounts[account_index]['auto_compounding'] = False
         selected_login = accounts[account_index].get('login', 'Unknown')
 
         # Update database

@@ -28,7 +28,7 @@ async def start_turn_on_auto_compounding(update: Update, context: ContextTypes.D
     keyboard = []
     for i, account in enumerate(accounts):
         login = account.get('login', f'Account {i+1}')
-        auto_compounding_status = account.get('auto_coumpounding', False)  # Note: keeping original typo
+        auto_compounding_status = account.get('auto_compounding', False)  # Note: keeping original typo
         status_text = "ON" if auto_compounding_status else "OFF"
 
         keyboard.append([InlineKeyboardButton(
@@ -73,7 +73,7 @@ async def handle_auto_compounding_selection(update: Update, context: ContextType
         updated_accounts = []
         for account in accounts:
             updated_account = account.copy()
-            updated_account['auto_coumpounding'] = True  # Update existing field with typo
+            updated_account['auto_compounding'] = True  # Update existing field with typo
             updated_accounts.append(updated_account)
 
         # Update database
@@ -99,7 +99,7 @@ async def handle_auto_compounding_selection(update: Update, context: ContextType
             return ConversationHandler.END
 
         # Enable auto compounding for selected account
-        accounts[account_index]['auto_coumpounding'] = True  # Update existing field with typo
+        accounts[account_index]['auto_compounding'] = True  # Update existing field with typo
         selected_login = accounts[account_index].get('login', 'Unknown')
 
         # Update database

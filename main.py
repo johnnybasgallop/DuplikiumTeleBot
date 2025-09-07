@@ -16,6 +16,7 @@ from commands.turnOffAutoCompounding import \
 from commands.turnOnAccount import turn_on_account_conversation
 from commands.turnOnAutoCompounding import \
     turn_on_auto_compounding_conversation
+from cron import start_daily_scheduler
 from dotenv import load_dotenv
 from telegram import BotCommand, Update
 from telegram.ext import (Application, CommandHandler, ContextTypes,
@@ -72,9 +73,21 @@ async def async_main():
 
     await bot_app.start()
     await bot_app.updater.start_polling()
+
+    compounding_task = await start_daily_scheduler()
+
     print("🤖 Telegram Bot is running...")
     stop_event = asyncio.Event()
     await stop_event.wait()
+
+    if compounding_task and not compounding_task.done():
+        compounding_task.cancel()
+        try:
+            await compounding_task
+        except asyncio.CancelledError:
+            print("Compounding task cancelled")
+
+
     await bot_app.updater.stop()
     await bot_app.stop()
     await bot_app.shutdown()
