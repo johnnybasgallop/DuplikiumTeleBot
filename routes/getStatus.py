@@ -62,11 +62,10 @@ async def get_account_info(account_id: str) -> str:
 
     return (
         f"📊 <b>Account Details</b>\n\n"
-        f"🆔 <b>Account ID:</b> <span class='tg-spoiler'>{details['account_id']}</span>\n"
         f"📝 <b>Name:</b> {details['name']}\n\n"
-        f"💰 <b>Balance:</b> <code>£{details['balance']:,.2f}</code>\n"
-        f"📈 <b>Equity:</b> <code>£{details['equity']:,.2f}</code>\n"
-        f"💳 <b>Free Margin:</b> <code>£{details['free_margin']:,.2f}</code>\n\n"
+        f"💰 <b>Balance:</b> <code>£{details['balance']:,.0f}</code>\n"  # No decimals for whole numbers
+        f"📈 <b>Equity:</b> <code>£{details['equity']:,.0f}</code>\n"
+        f"💳 <b>Free Margin:</b> <code>£{details['free_margin']:,.0f}</code>\n\n"
         f"{status_emoji} <b>Status:</b> {status_text}\n"
         f"{state_emoji} <b>Connection:</b> {details['state']}"
     )

@@ -1,4 +1,5 @@
 from config import db
+from routes.getMulti import get_account_multiplier
 from routes.getStatus import get_account_info
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (CallbackQueryHandler, CommandHandler, ContextTypes,
@@ -6,6 +7,37 @@ from telegram.ext import (CallbackQueryHandler, CommandHandler, ContextTypes,
 
 # State
 SELECT_ACCOUNT_TO_CHECK = 1
+
+async def get_account_info_with_multiplier(account_id: str) -> str:
+    """
+    Get account info including multiplier data with proper number formatting
+    """
+    # Get basic account info
+    account_info = await get_account_info(account_id)
+
+    # Get multiplier info
+    multiplier_data = await get_account_multiplier(account_id)
+
+    if multiplier_data and multiplier_data.get("multiplier_value") is not None:
+        try:
+            # Convert to float first, then format
+            multiplier_value = float(multiplier_data["multiplier_value"])
+
+            # Format multiplier to remove unnecessary decimals
+            if multiplier_value == int(multiplier_value):
+                formatted_multiplier = str(int(multiplier_value))
+            else:
+                formatted_multiplier = f"{multiplier_value:.1f}".rstrip('0').rstrip('.')
+
+            multiplier_text = f"⚖️ <b>Current Multiplier:</b> {formatted_multiplier}"
+        except (ValueError, TypeError):
+            # Handle case where multiplier_value can't be converted
+            multiplier_text = f"⚖️ <b>Current Multiplier:</b> {multiplier_data['multiplier_value']}"
+    else:
+        multiplier_text = "⚖️ <b>Current Multiplier:</b> Not Set"
+
+    # Combine account info with multiplier
+    return f"{account_info}\n{multiplier_text}"
 
 async def start_check_account_status(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data.clear()
@@ -58,7 +90,7 @@ async def handle_account_status_check(update: Update, context: ContextTypes.DEFA
         return ConversationHandler.END
 
     if query.data == "check_all":
-        # Handle checking all accounts
+        # Handle checking all accounts - send individual messages
         user_id = str(update.effective_user.id)
 
         # Get fresh account data
@@ -67,17 +99,31 @@ async def handle_account_status_check(update: Update, context: ContextTypes.DEFA
 
         await query.edit_message_text(f"Checking status for all {len(accounts)} accounts...")
 
-        # Get status for each account
-        all_statuses = []
-        for account in accounts:
+        # Send individual message for each account
+        for i, account in enumerate(accounts):
             account_id = account.get('accountId', '')
-            account_info = await get_account_info(account_id)
-            all_statuses.append(account_info)
+            login = account.get('login', f'Account {i+1}')
 
-        # Combine all statuses with spacing
-        combined_status = "\n\n\n\n".join(all_statuses)
+            try:
+                account_info = await get_account_info_with_multiplier(account_id)
 
-        await query.edit_message_text(combined_status, parse_mode="HTML")
+                # Send individual message for each account
+                await update.callback_query.message.reply_text(
+                    account_info,
+                    parse_mode="HTML"
+                )
+
+            except Exception as e:
+                # Send error message for failed account
+                await update.callback_query.message.reply_text(
+                    f"❌ Failed to get status for account {login}: {str(e)}"
+                )
+
+        # Send completion message
+        await update.callback_query.message.reply_text(
+            f"✅ Status check completed for all {len(accounts)} accounts."
+        )
+
         return ConversationHandler.END
 
     # Handle individual account check
@@ -99,8 +145,8 @@ async def handle_account_status_check(update: Update, context: ContextTypes.DEFA
     # Show loading message
     await query.edit_message_text("Checking account status...")
 
-    # Call your API route
-    account_info = await get_account_info(account_id)
+    # Get account info with multiplier
+    account_info = await get_account_info_with_multiplier(account_id)
 
     # Show the results
     await query.edit_message_text(account_info, parse_mode="HTML")
