@@ -267,7 +267,7 @@ async def daily_compounding_check():
     while True:
         now = datetime.now(timezone.utc)
 
-        next_run = now.replace(hour=22, minute=30, second=0, microsecond=0)
+        next_run = now.replace(hour=3, minute=9, second=0, microsecond=0)
         if now >= next_run:
             next_run = next_run.replace(day=next_run.day + 1)
 
