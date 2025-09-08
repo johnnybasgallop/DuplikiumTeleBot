@@ -1,10 +1,66 @@
 import asyncio
+import os
 from datetime import datetime, time, timezone
 from typing import Any, Dict, Optional
 
 import aiohttp
 from config import GET_ACCOUNTS, HEADERS, db
+from telegram import Bot
+from telegram.error import TelegramError
 
+# Initialize bot for sending messages
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+bot = Bot(token=BOT_TOKEN)
+
+async def find_telegram_id_for_account(account_id: str) -> Optional[str]:
+    """
+    Find the telegram ID for a given account ID
+    """
+    try:
+        all_rows = db.table('algo-accounts').select("*").execute()
+
+        if not all_rows.data:
+            return None
+
+        for row in all_rows.data:
+            telegram_id = row.get('telegramId')
+            accounts = row.get('accounts', [])
+
+            for account in accounts:
+                if account.get('accountId') == account_id:
+                    return telegram_id
+
+        return None
+
+    except Exception as e:
+        print(f"Error finding telegram ID for account {account_id}: {e}")
+        return None
+
+async def send_multiplier_update_notification(telegram_id: str, account_id: str, account_name: str, old_multiplier: float, new_multiplier: float, equity: float):
+    """
+    Send notification to user about multiplier update
+    """
+    try:
+        message = (
+            f"🔔 <b>Auto Compounding Update</b>\n\n"
+            f"📊 <b>Account:</b> {account_name}\n"
+            f"💰 <b>Current Equity:</b> £{equity:,.2f}\n"
+            f"📈 <b>Multiplier Updated:</b> {old_multiplier} → {new_multiplier}\n\n"
+            f"Your account has reached a new equity tier and the multiplier has been automatically adjusted for compounding growth."
+        )
+
+        await bot.send_message(
+            chat_id=telegram_id,
+            text=message,
+            parse_mode='HTML'
+        )
+
+        print(f"Notification sent to {telegram_id} for account {account_id}")
+
+    except TelegramError as e:
+        print(f"Failed to send notification to {telegram_id}: {e}")
+    except Exception as e:
+        print(f"Unexpected error sending notification to {telegram_id}: {e}")
 
 async def check_auto_compounding_status():
     """
@@ -28,7 +84,6 @@ async def check_auto_compounding_status():
             # Check each account in the user's accounts array
             for account in accounts:
                 account_id = account.get('accountId')
-                # Note: using 'auto_compounding' to match your existing field name with typo
                 compounding_state = account.get('auto_compounding', False)
 
                 if account_id:
@@ -93,16 +148,10 @@ async def get_account_balance_and_multiplier(account_id: str) -> Optional[Dict[s
 def calculate_compounding_multiplier(equity: float) -> float:
     """
     Calculate multiplier based on £3500 equity tiers
-    £0-£3499 = 0 multiplier
-    £3500-£6999 = 1.0 multiplier
-    £7000-£10499 = 2.0 multiplier
-    £10500-£13999 = 3.0 multiplier
-    etc.
     """
     if equity < 3500:
         return 0.0
 
-    # Floor division to get the tier level
     multiplier = int(equity // 3500)
     return float(multiplier)
 
@@ -131,7 +180,7 @@ async def set_account_multiplier_simple(account_id: str, multiplier_value: float
 
 async def process_auto_compounding_accounts():
     """
-    Process auto compounding accounts with equity-based tiers
+    Process auto compounding accounts with equity-based tiers and send notifications
     """
     try:
         compounding_array = await check_auto_compounding_status()
@@ -171,15 +220,35 @@ async def process_auto_compounding_accounts():
                 'updated': False
             }
 
-            # Only update if target multiplier is different from current
-            if target_multiplier != current_multiplier:
+            # Only update if target multiplier is different from current AND it's an increase
+            if target_multiplier != current_multiplier and target_multiplier > current_multiplier:
                 success = await set_account_multiplier_simple(account_id, target_multiplier)
                 result['updated'] = success
 
                 if success:
                     print(f"Updated {account_id}: equity £{equity:,.2f} (tier {int(equity // 3500)}) -> multiplier {current_multiplier} -> {target_multiplier}")
+
+                    # Find telegram ID and send notification
+                    telegram_id = await find_telegram_id_for_account(account_id)
+                    if telegram_id:
+                        await send_multiplier_update_notification(
+                            telegram_id=telegram_id,
+                            account_id=account_id,
+                            account_name=account_data['name'],
+                            old_multiplier=current_multiplier,
+                            new_multiplier=target_multiplier,
+                            equity=equity
+                        )
+                    else:
+                        print(f"Could not find telegram ID for account {account_id}")
                 else:
                     print(f"Failed to update {account_id} multiplier")
+            elif target_multiplier < current_multiplier:
+                # Handle multiplier decrease (equity dropped below tier)
+                success = await set_account_multiplier_simple(account_id, target_multiplier)
+                result['updated'] = success
+                if success:
+                    print(f"Decreased {account_id}: equity £{equity:,.2f} (tier {int(equity // 3500)}) -> multiplier {current_multiplier} -> {target_multiplier}")
             else:
                 print(f"No change needed for {account_id}: equity £{equity:,.2f} (tier {int(equity // 3500)}) -> multiplier {current_multiplier}")
 
@@ -193,22 +262,20 @@ async def process_auto_compounding_accounts():
 
 async def daily_compounding_check():
     """
-    Run the compounding check daily at midnight GMT
+    Run the compounding check daily at 22:30 GMT
     """
     while True:
         now = datetime.now(timezone.utc)
 
-        # Calculate seconds until next midnight GMT
-        next_midnight = now.replace(hour=23, minute=36, second=0, microsecond=0)
-        if now >= next_midnight:
-            next_midnight = next_midnight.replace(day=next_midnight.day + 1)
+        next_run = now.replace(hour=22, minute=30, second=0, microsecond=0)
+        if now >= next_run:
+            next_run = next_run.replace(day=next_run.day + 1)
 
-        seconds_until_midnight = (next_midnight - now).total_seconds()
+        seconds_until_run = (next_run - now).total_seconds()
 
-        print(f"Waiting {seconds_until_midnight/3600:.1f} hours until next midnight GMT compounding check")
-        await asyncio.sleep(seconds_until_midnight)
+        print(f"Waiting {seconds_until_run/3600:.1f} hours until next 22:30 GMT compounding check")
+        await asyncio.sleep(seconds_until_run)
 
-        # Run the full compounding process
         print(f"Running auto compounding process at {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}")
         results = await process_auto_compounding_accounts()
 
@@ -225,7 +292,6 @@ async def start_daily_scheduler():
     task = asyncio.create_task(daily_compounding_check())
     return task
 
-# Test function to run immediately
 async def test_auto_compounding():
     """Test the auto compounding process immediately"""
     print("Testing auto compounding process...")
